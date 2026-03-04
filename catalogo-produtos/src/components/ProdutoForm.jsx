@@ -1,49 +1,55 @@
-import { useState } from "react";
+import { memo, useCallback, useState } from "react";
 
-const initialForm = {
+const initialForm = Object.freeze({
   nome: "",
   preco: "",
   descricao: "",
   imagem: "",
-};
+});
 
-export default function ProdutoForm({ onAdd }) {
+function ProdutoForm({ onAdd }) {
   const [form, setForm] = useState(initialForm);
   const [erro, setErro] = useState("");
 
-  function handleChange(e) {
+  const handleChange = useCallback((e) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-    if (erro) setErro("");
-  }
 
-  function handleSubmit(e) {
-    e.preventDefault();
+    setForm((prev) => (prev[name] === value ? prev : { ...prev, [name]: value }));
+    // limpa o erro assim que o usuário começa a corrigir
+    setErro((prev) => (prev ? "" : prev));
+  }, []);
 
-    const nome = form.nome.trim();
-    const descricao = form.descricao.trim();
-    const precoNum = Number(form.preco);
+  const handleSubmit = useCallback(
+    (e) => {
+      e.preventDefault();
 
-    if (!nome || !form.preco.trim() || !descricao) {
-      setErro("Preencha nome, preço e descrição.");
-      return;
-    }
+      const nome = form.nome.trim();
+      const descricao = form.descricao.trim();
+      const precoStr = String(form.preco).trim();
+      const precoNum = Number(precoStr);
 
-    if (!Number.isFinite(precoNum) || precoNum <= 0) {
-      setErro("Digite um preço válido (maior que 0).");
-      return;
-    }
+      if (!nome || !precoStr || !descricao) {
+        setErro("Preencha nome, preço e descrição.");
+        return;
+      }
 
-    onAdd({
-      nome,
-      preco: precoNum,
-      descricao,
-      imagem: form.imagem.trim(),
-    });
+      if (!Number.isFinite(precoNum) || precoNum <= 0) {
+        setErro("Digite um preço válido (maior que 0).");
+        return;
+      }
 
-    setForm(initialForm);
-    setErro("");
-  }
+      onAdd({
+        nome,
+        preco: precoNum,
+        descricao,
+        imagem: form.imagem.trim(),
+      });
+
+      setForm(initialForm);
+      setErro("");
+    },
+    [form, onAdd]
+  );
 
   return (
     <form className="form" onSubmit={handleSubmit}>
@@ -89,3 +95,5 @@ export default function ProdutoForm({ onAdd }) {
     </form>
   );
 }
+
+export default memo(ProdutoForm);

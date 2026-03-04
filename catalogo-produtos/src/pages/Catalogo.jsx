@@ -2,22 +2,25 @@ import { useEffect, useState } from "react";
 import ProdutoCard from "../components/ProdutoCard";
 import ProdutoForm from "../components/ProdutoForm";
 
+import camiseta480 from "../assets/products/camiseta-480.webp";
+import camiseta960 from "../assets/products/camiseta-960.webp";
+import tenis480 from "../assets/products/tenis-480.webp";
+import tenis960 from "../assets/products/tenis-960.webp";
+
 const mockProdutos = [
   {
     id: 1,
     nome: "Camiseta Oversized",
     preco: 89.9,
     descricao: "Camiseta confortável, estilo streetwear e tecido premium.",
-    imagem:
-      "https://plus.unsplash.com/premium_photo-1756085509463-59d0110430ba?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OXx8Y2FtaXNhJTIwb3ZlcnNpemVkfGVufDB8fDB8fHww",
+    img: { src: camiseta480, srcSet: `${camiseta480} 480w, ${camiseta960} 960w` },
   },
   {
     id: 2,
     nome: "Tênis Urbano",
     preco: 249.9,
     descricao: "Tênis leve, bonito e perfeito para o dia a dia.",
-    imagem:
-      "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?auto=format&fit=crop&w=900&q=60",
+    img: { src: tenis480, srcSet: `${tenis480} 480w, ${tenis960} 960w` },
   },
 ];
 
@@ -25,23 +28,19 @@ export default function Catalogo() {
   const [produtos, setProdutos] = useState([]);
   const [carregando, setCarregando] = useState(true);
 
-  // Simula carregamento inicial (API)
-  useEffect(() => {
-    setCarregando(true);
+  // Em produção, NÃO atrase o LCP com delay artificial
+  const DELAY_MS = import.meta.env.DEV ? 1500 : 0;
 
+  useEffect(() => {
     const timer = setTimeout(() => {
       setProdutos(mockProdutos);
       setCarregando(false);
-    }, 1500);
-
+    }, DELAY_MS);
     return () => clearTimeout(timer);
-  }, []);
+  }, [DELAY_MS]);
 
   function adicionarProduto(novoProduto) {
-    setProdutos((prev) => [
-      { ...novoProduto, id: Date.now() },
-      ...prev,
-    ]);
+    setProdutos((prev) => [{ ...novoProduto, id: Date.now() }, ...prev]);
   }
 
   return (
@@ -62,13 +61,14 @@ export default function Catalogo() {
           <p className="loading">carregando...</p>
         ) : (
           <div className="grid">
-            {produtos.map((produto) => (
+            {produtos.map((produto, index) => (
               <ProdutoCard
                 key={produto.id}
                 nome={produto.nome}
                 preco={produto.preco}
-                imagem={produto.imagem}
                 descricao={produto.descricao}
+                img={produto.img}
+                priority={index === 0}
               />
             ))}
           </div>

@@ -1,15 +1,32 @@
-export default function ProdutoCard({ nome, preco, imagem, descricao }) {
-  const precoFormatado = Number(preco).toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  });
+import { memo, useMemo } from "react";
+
+function ProdutoCard({ nome, preco, descricao, img, priority = false }) {
+  const precoFormatado = useMemo(
+    () =>
+      Number(preco).toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+      }),
+    [preco]
+  );
+
+  const src = img?.src ?? "";
+  const srcSet = img?.srcSet;
 
   return (
     <article className="card">
       <img
-        src={imagem || "https://via.placeholder.com/400x250?text=Sem+imagem"}
+        src={src}
+        {...(srcSet ? { srcSet } : null)}
+        sizes="(max-width: 600px) 100vw, 400px"
         alt={nome}
+        loading={priority ? "eager" : "lazy"}
+        fetchpriority={priority ? "high" : "auto"}
+        decoding="async"
+        width="400"
+        height="250"
       />
+
       <div className="card-body">
         <h3>{nome}</h3>
         <strong>{precoFormatado}</strong>
@@ -18,3 +35,5 @@ export default function ProdutoCard({ nome, preco, imagem, descricao }) {
     </article>
   );
 }
+
+export default memo(ProdutoCard);
