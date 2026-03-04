@@ -1,69 +1,89 @@
 import { useState } from "react";
 
+const initialForm = {
+  nome: "",
+  preco: "",
+  descricao: "",
+  imagem: "",
+};
+
 export default function ProdutoForm({ onAdd }) {
-  const [nome, setNome] = useState("");
-  const [preco, setPreco] = useState("");
-  const [descricao, setDescricao] = useState("");
-  const [imagem, setImagem] = useState("");
+  const [form, setForm] = useState(initialForm);
   const [erro, setErro] = useState("");
+
+  function handleChange(e) {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+    if (erro) setErro("");
+  }
 
   function handleSubmit(e) {
     e.preventDefault();
 
-    if (!nome.trim() || !preco.trim() || !descricao.trim()) {
+    const nome = form.nome.trim();
+    const descricao = form.descricao.trim();
+    const precoNum = Number(form.preco);
+
+    if (!nome || !form.preco.trim() || !descricao) {
       setErro("Preencha nome, preço e descrição.");
       return;
     }
 
-    const precoNum = Number(preco);
-    if (Number.isNaN(precoNum) || precoNum <= 0) {
+    if (!Number.isFinite(precoNum) || precoNum <= 0) {
       setErro("Digite um preço válido (maior que 0).");
       return;
     }
 
     onAdd({
-      nome: nome.trim(),
+      nome,
       preco: precoNum,
-      descricao: descricao.trim(),
-      imagem: imagem.trim(),
+      descricao,
+      imagem: form.imagem.trim(),
     });
 
-    // limpa
-    setNome("");
-    setPreco("");
-    setDescricao("");
-    setImagem("");
+    setForm(initialForm);
     setErro("");
   }
 
   return (
     <form className="form" onSubmit={handleSubmit}>
       <input
-        value={nome}
-        onChange={(e) => setNome(e.target.value)}
+        name="nome"
+        value={form.nome}
+        onChange={handleChange}
         placeholder="Nome do produto*"
+        required
       />
 
       <input
-        value={preco}
-        onChange={(e) => setPreco(e.target.value)}
+        name="preco"
+        value={form.preco}
+        onChange={handleChange}
         placeholder="Preço (ex: 199.90)*"
+        type="number"
+        inputMode="decimal"
+        step="0.01"
+        min="0.01"
+        required
       />
 
       <textarea
-        value={descricao}
-        onChange={(e) => setDescricao(e.target.value)}
+        name="descricao"
+        value={form.descricao}
+        onChange={handleChange}
         placeholder="Descrição*"
         rows={4}
+        required
       />
 
       <input
-        value={imagem}
-        onChange={(e) => setImagem(e.target.value)}
+        name="imagem"
+        value={form.imagem}
+        onChange={handleChange}
         placeholder="URL da imagem (opcional)"
       />
 
-      {erro && <p className="error">{erro}</p>}
+      {erro ? <p className="error">{erro}</p> : null}
 
       <button type="submit">Adicionar</button>
     </form>
